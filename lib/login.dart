@@ -18,8 +18,13 @@ class _LoginPageState extends State<LoginPage> {
   final _formKey = GlobalKey<FormState>();
 
   void moveToHome() async {
-    Navigator.pushReplacementNamed(context, MyRoutes.studentHomePage);
-    Fluttertoast.showToast(msg: "Logged In Successfully");
+    if (index == 1) {
+      Navigator.pushReplacementNamed(context, MyRoutes.studentHomePage);
+      Fluttertoast.showToast(msg: "Logged In Successfully as Student");
+    } else {
+      Navigator.pushReplacementNamed(context, MyRoutes.adminHomePage);
+      Fluttertoast.showToast(msg: "Logged In Successfully as Admin");
+    }
     /* 
     TODO: After Backend
     if (_formKey.currentState!.validate()) {
