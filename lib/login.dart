@@ -18,52 +18,57 @@ class _LoginPageState extends State<LoginPage> {
   final _formKey = GlobalKey<FormState>();
 
   void moveToHome() async {
-    if (index == 1) {
-      Navigator.pushReplacementNamed(context, MyRoutes.studentHomePage);
-      Fluttertoast.showToast(msg: "Logged In Successfully as Student");
-    } else {
-      Navigator.pushReplacementNamed(context, MyRoutes.adminHomePage);
-      Fluttertoast.showToast(msg: "Logged In Successfully as Admin");
-    }
-    /* 
-    TODO: After Backend
+
+    // TODO: After Backend
     if (_formKey.currentState!.validate()) {
-      try {
-        
-         
-        final Dio _dio = Dio();
-        Response response = await _dio.post(
-          '127.0.0.1' + '/login',
-          data: {
-            "username": name,
-            "password": password,
-            "type": type[index - 1]
-          },
-        );
+      if (index == 1) {
+        try {
+          final Dio _dio = Dio();
+          Response response = await _dio.post(
+            'https://course-registration-lnmiit.herokuapp.com/student/verify',
+            data: {"userId": name, "passw": password},
+          );
 
-        print('Login: ${response.data}');
+          print('Login: ${response.data}');
 
-        bool success = response.data;
-        if (success) {
-          await Navigator.pushNamed(context, MyRoutes.homePage);
-          Fluttertoast.showToast(msg: "Login Success");
-          setState(() {
-            forAnimation = true;
-          });
-        } else {
-          Fluttertoast.showToast(msg: "Login Failed");
+          bool success = response.data;
+          if (success) {
+            Fluttertoast.showToast(msg: "Login Success as Student");
+            await Navigator.pushReplacementNamed(
+                context, MyRoutes.studentHomePage);
+          } else {
+            Fluttertoast.showToast(msg: "Login Failed");
+          }
+        } catch (e) {
+          Fluttertoast.showToast(
+              msg: "Oops! Something went wrong. Try Again...");
+          print('Error creating user: $e');
         }
-      } catch (e) {
-        print('Error creating user: $e');
+      } else {
+        try {
+          final Dio _dio = Dio();
+          Response response = await _dio.post(
+            'https://course-registration-lnmiit.herokuapp.com/admin/verify',
+            data: {"userId": name, "passw": password},
+          );
+
+          print('Login: ${response.data}');
+
+          bool success = response.data;
+          if (success) {
+            Fluttertoast.showToast(msg: "Login Success as Admin");
+            await Navigator.pushReplacementNamed(
+                context, MyRoutes.adminHomePage);
+          } else {
+            Fluttertoast.showToast(msg: "Login Failed");
+          }
+        } catch (e) {
+          Fluttertoast.showToast(
+              msg: "Oops! Something went wrong. Try Again...");
+          print('Error creating user: $e');
+        }
       }
-
-      //await Future.delayed(Duration(seconds: 1));
-
-      setState(() {
-        forAnimation = false;
-      });
     }
-    */
   }
 
   @override
@@ -129,7 +134,7 @@ class _LoginPageState extends State<LoginPage> {
                             validator: (value) {
                               if (value!.isEmpty) {
                                 return "Password can't be empty";
-                              } else if (value.length < 6) {
+                              } else if (value.length < 4) {
                                 return "Password should consist of atleast 6 characters";
                               }
                               return null;
@@ -144,29 +149,28 @@ class _LoginPageState extends State<LoginPage> {
                           children: [
                             "Role".text.xl.make(),
                             Container(
-                              padding: EdgeInsets.all(20),
+                              padding: const EdgeInsets.all(20),
                               child: DropdownButton(
-                                  borderRadius: BorderRadius.circular(20),
-                                  value: 1,
-                                  items: [
-                                    DropdownMenuItem(
-                                      child: Text(type[0]),
-                                      value: 1,
-                                    ),
-                                    DropdownMenuItem(
-                                      child: Text(type[1]),
-                                      value: 2,
-                                    )
-                                  ],
-                                  onChanged: (int? value) {
-                                    // print(value);
-                                    setState(() {
-                                      index = value!;
-                                    });
-                                  },
-                                  icon:
-                                      const Icon(Icons.arrow_drop_down_circle),
-                                  hint: const Text("Select item")),
+                                borderRadius: BorderRadius.circular(20),
+                                value: index,
+                                items: [
+                                  DropdownMenuItem(
+                                    child: Text(type[0]),
+                                    value: 1,
+                                  ),
+                                  DropdownMenuItem(
+                                    child: Text(type[1]),
+                                    value: 2,
+                                  )
+                                ],
+                                onChanged: (int? value) {
+                                  print(value);
+                                  index = value!;
+                                  setState(() {});
+                                },
+                                icon: const Icon(Icons.arrow_drop_down_circle),
+                                // hint: const Text("Select item")
+                              ),
                             ),
                           ],
                         )

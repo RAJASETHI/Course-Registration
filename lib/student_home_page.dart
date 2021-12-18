@@ -1,11 +1,43 @@
+import 'package:dio/dio.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_application_1/Utils/routes.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:velocity_x/velocity_x.dart';
 
 class StuHome extends StatelessWidget {
+  final _formKey2 = GlobalKey<FormState>();
+
+  Future<void> updatePassword() async {
+    // if (_formKey2.currentState!.validate()) {
+    //   try {
+    //     final Dio _dio = Dio();
+    //     Response response = await _dio.post(
+    //       'https://course-registration-lnmiit.herokuapp.com/admin/register',
+    //       data: {
+    //         "userId": username.text,
+    //         "passw": passw.text,
+    //       },
+    //     );
+
+    //     print('Adding: ${response.data}');
+
+    //     String success = response.data;
+    //     if (success == "Success") {
+    //       Fluttertoast.showToast(msg: "Admin Successfully Added");
+    //     } else {
+    //       Fluttertoast.showToast(msg: "Not able to add admin...");
+    //     }
+    //   } catch (e) {
+    //     Fluttertoast.showToast(msg: 'Error creating user: $e');
+    //     print('Error creating user: $e');
+    //   }
+    // }
+  }
+
   @override
   Widget build(BuildContext context) {
+    String passw = "";
     return MaterialApp(
       home: Scaffold(
           appBar: AppBar(
@@ -38,15 +70,15 @@ class StuHome extends StatelessWidget {
                           fontSize: 24.0,
                           fontWeight: FontWeight.bold),
                     ),
-                    HeightBox(20),
-                    Text(
+                    const HeightBox(20),
+                    const Text(
                       '19ucs001@lnmiit.ac.in',
                       style: TextStyle(
                           fontFamily: 'SourceSerifPro',
                           color: Colors.black,
                           fontSize: 22.0),
                     ),
-                    SizedBox(
+                    const SizedBox(
                       height: 20.0,
                       width: 150.0,
                       child: Divider(
@@ -62,12 +94,12 @@ class StuHome extends StatelessWidget {
                           hintText: 'New Password',
                           labelText: 'Change Password',
                         ),
-                        onSaved: (String? value) {},
+                        onChanged: (String? value) => passw = value!,
                       ),
                     ),
                     HeightBox(20),
                     ElevatedButton(
-                        onPressed: null,
+                        onPressed: () => updatePassword(),
                         child: Text(
                           "Udpdate Info",
                           style: TextStyle(color: Colors.black),
