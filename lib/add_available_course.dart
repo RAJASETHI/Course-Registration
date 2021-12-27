@@ -7,27 +7,58 @@ import 'package:velocity_x/velocity_x.dart';
 import 'package:flutter_application_1/course.dart';
 
 import 'Utils/my_store.dart';
-import 'student.dart';
 
 bool adding = false;
 
-class EditStudent extends StatefulWidget {
-  final Student student_;
-  const EditStudent({
+class AddAvlbCourse extends StatefulWidget {
+  final Course course;
+  const AddAvlbCourse({
     Key? key,
-    required this.student_,
+    required this.course,
   }) : super(key: key);
 
   @override
-  State<EditStudent> createState() => _EditStudentState();
+  State<AddAvlbCourse> createState() => _AddAvlbCourseState();
 }
 
-class _EditStudentState extends State<EditStudent> {
-  TextEditingController userID = TextEditingController();
-  TextEditingController name = TextEditingController();
+class _AddAvlbCourseState extends State<AddAvlbCourse> {
   TextEditingController branch = TextEditingController();
-  TextEditingController joining_year = TextEditingController();
+  TextEditingController semester = TextEditingController();
+  TextEditingController seats = TextEditingController();
+  TextEditingController grp = TextEditingController();
+
   List<String> branches = ["CSE", "CCE", "ECE", "ME", "CSE Dual", "ECE Dual"];
+  List<String> sems = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10"];
+  _showPickerSemester() {
+    showModalBottomSheet(
+        context: context,
+        shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.vertical(top: Radius.circular(25.0))),
+        builder: (BuildContext bc) {
+          return SingleChildScrollView(
+            child: Column(
+              children: <Widget>[
+                "Semester".text.bold.xl2.make().p12().centered(),
+                ListView.builder(
+                  itemCount: sems.length,
+                  physics: NeverScrollableScrollPhysics(),
+                  shrinkWrap: true,
+                  itemBuilder: (context, index) {
+                    return ListTile(
+                        // leading: Icon(CupertinoIcons.person_alt_circle),
+                        title: Text("${sems[index]}").centered(),
+                        onTap: () async {
+                          semester.text = "${sems[index]}";
+                          setState(() {});
+                          Navigator.pop(context);
+                        });
+                  },
+                )
+              ],
+            ),
+          );
+        });
+  }
 
   _showPickerBranch() {
     showModalBottomSheet(
@@ -59,80 +90,66 @@ class _EditStudentState extends State<EditStudent> {
   }
 
   @override
-  void initState() {
-    adding = false;
-    userID.text = widget.student_.userid!;
-    name.text = widget.student_.name!;
-    branch.text = widget.student_.branch!;
-    joining_year.text = widget.student_.joining_year!;
+  Widget build(BuildContext context) {
+    @override
+    void initState() {
+      super.initState();
+    }
 
-    super.initState();
-  }
+    final _formKey2 = GlobalKey<FormState>();
 
-  final MyStore store = VxState.store;
-  final _formKey2 = GlobalKey<FormState>();
-
-  Future<void> sendQuery() async {
-    if (_formKey2.currentState!.validate()) {
-      adding = true;
-      print(adding);
-      setState(() {});
-      try {
-        final Dio _dio = Dio();
-        Response response = await _dio.post(
-          'https://course-registration-lnmiit.herokuapp.com/student/update',
-          data: {
-            "userId": userID.text,
-            "name": name.text,
-            "joining_year": joining_year.text,
-            "Branch": branch.text,
-            "Student_DOB": "2021-10-11",
-          },
-        );
-
-        print('Updating: ${response.data}');
-
-        if (response.data.toString() == "success") {
+    Future<void> sendQuery() async {
+      if (_formKey2.currentState!.validate()) {
+        adding = true;
+        print(adding);
+        setState(() {});
+        try {
           final Dio _dio = Dio();
-          Response response_ = await _dio.get(
-            'https://course-registration-lnmiit.herokuapp.com/student/list',
+          Response response = await _dio.post(
+            'https://course-registration-lnmiit.herokuapp.com/course/addAvailableCourse',
+            data: {
+              "course_id": widget.course.course_id,
+              "semester": semester.text,
+              "branch": branch.text,
+              "totalSeats": seats.text,
+              "grp": grp.text
+            },
           );
-          StudentCatalog.studentCatalog = List.from(response_.data)
-              .map((itemMap) => Student.fromMap(itemMap))
-              .toList();
-          store.studentListStore = StudentCatalog.studentCatalog;
-          if (StudentCatalog.studentCatalog!.isEmpty) {
-            Fluttertoast.showToast(msg: "No Student available.");
-          }
-          Navigator.pop(context);
+          print(widget.course.course_id);
+          print(semester.text);
+          print(branch.text);
+          print(seats.text);
+          print(grp.text);
 
+          print('Adding: ${response.data}');
+
+          if (response.data.toString() == "success") {
+            Navigator.pop(context);
+            setState(() {
+              adding = false;
+            });
+            Fluttertoast.showToast(msg: "Availability Added.");
+          } else {
+            setState(() {
+              adding = false;
+            });
+            print(response.data);
+            Fluttertoast.showToast(msg: "Not able to Add.");
+          }
+        } catch (e) {
           setState(() {
             adding = false;
           });
-          Fluttertoast.showToast(msg: "Student successfully updated");
-        } else {
-          setState(() {
-            adding = false;
-          });
-          print(response.data);
-          Fluttertoast.showToast(msg: "Not able to update.");
+          Fluttertoast.showToast(msg: 'Some error occured');
+          print('Error: $e');
         }
-      } catch (e) {
-        setState(() {
-          adding = false;
-        });
-        Fluttertoast.showToast(msg: 'Some error occured');
-        print('Error: $e');
       }
     }
-  }
 
-  @override
-  Widget build(BuildContext context) {
     return Scaffold(
       body: SafeArea(
         child: Container(
-          // padding: Vx.m32,
+          padding: Vx.m32,
           child: SingleChildScrollView(
             child: Form(
               key: _formKey2,
@@ -141,60 +158,26 @@ class _EditStudentState extends State<EditStudent> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      "Edit Student Details".text.xl5.bold.make().expand(),
+                      "Add Course Availability".text.bold.xl5.make().expand(),
                       IconButton(
                         onPressed: () => Navigator.pop(context),
                         icon: Icon(CupertinoIcons.chevron_back),
                         iconSize: 40,
                       )
                     ],
-                  ).p20(),
-
-                  // "Edit account".text.xl2.make(),
-                  "Edit ${widget.student_.name}'s details"
+                  ).pOnly(bottom: 20),
+                  10.heightBox,
+                  "${widget.course.coursename} (${widget.course.course_id})"
                       .text
-                      .xl2
-                      .make()
-                      .pOnly(left: 20),
+                      .xl
+                      .make(),
+                  10.heightBox,
                   CupertinoFormSection(
                     backgroundColor: Colors.transparent,
-                    header: "Personal Details".text.make(),
+                    header: "Course Properties".text.make(),
                     children: [
-                      CupertinoFormRow(
-                        //padding: EdgeInsets.only(left: 0),
-                        child: CupertinoTextFormFieldRow(
-                          controller: userID,
-                          enabled: false,
-                          placeholder: "Username",
-                          // prefix: "Email".text.make(),
-                          padding: EdgeInsets.only(left: 0),
-                          keyboardType: TextInputType.emailAddress,
-                          validator: (value) {
-                            if (value!.isEmpty) {
-                              return "Username can't be empty";
-                            }
-                            return null;
-                          },
-                          prefix: "Student ID ".text.caption(context).make(),
-                        ),
-                      ),
-                      CupertinoFormRow(
-                        //padding: EdgeInsets.only(left: 0),
-                        child: CupertinoTextFormFieldRow(
-                          controller: name,
-                          validator: (value) {
-                            if (value!.isEmpty) {
-                              return "Name can't be empty";
-                            }
-                            return null;
-                          },
-                          placeholder: "Name",
-                          // prefix: "Name".text.make(),
-                          padding: EdgeInsets.only(left: 0),
-                          prefix: "Name ".text.caption(context).make(),
-                        ),
-                      ),
                       CupertinoFormRow(
                         //padding: EdgeInsets.only(left: 0),
                         child: CupertinoTextFormFieldRow(
@@ -216,24 +199,56 @@ class _EditStudentState extends State<EditStudent> {
                       CupertinoFormRow(
                         //padding: EdgeInsets.only(left: 0),
                         child: CupertinoTextFormFieldRow(
-                          controller: joining_year,
-                          keyboardType: TextInputType.number,
+                          controller: semester,
+                          onTap: _showPickerSemester,
+                          placeholder: "Semester",
                           validator: (value) {
                             if (value!.isEmpty) {
-                              return "Joining year can't be empty";
+                              return "Semester can't be empty";
                             }
                             return null;
                           },
-                          prefix: "Batch ".text.caption(context).make(),
-                          placeholder: "Joining Year",
-
-                          // prefix: "Username".text.make(),
+                          prefix: "Semester ".text.caption(context).make(),
+                          decoration: const BoxDecoration(color: Colors.white),
+                          readOnly: true,
+                          padding: EdgeInsets.only(left: 0),
+                        ),
+                      ),
+                      CupertinoFormRow(
+                        //padding: EdgeInsets.only(left: 0),
+                        child: CupertinoTextFormFieldRow(
+                          controller: seats,
+                          keyboardType: TextInputType.number,
+                          validator: (value) {
+                            if (value!.isEmpty) {
+                              return "Seats can't be empty";
+                            }
+                            return null;
+                          },
+                          placeholder: "Seats",
+                          prefix: "Seats ".text.caption(context).make(),
+                          padding: EdgeInsets.only(left: 0),
+                        ),
+                      ),
+                      CupertinoFormRow(
+                        //padding: EdgeInsets.only(left: 0),
+                        child: CupertinoTextFormFieldRow(
+                          controller: grp,
+                          validator: (value) {
+                            if (widget.course.type == "Elective" &&
+                                value!.isEmpty) {
+                              return "Group for elevtive course can't be empty.";
+                            }
+                            return null;
+                          },
+                          placeholder: "Group",
+                          keyboardType: TextInputType.number,
+                          prefix: "Group ".text.caption(context).make(),
                           padding: EdgeInsets.only(left: 0),
                         ),
                       ),
                     ],
-                  ).pOnly(left: 20, right: 20, top: 10),
-
+                  ),
                   50.heightBox,
                   Container(
                     width: 70,

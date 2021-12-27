@@ -13,5 +13,6 @@ class MyRoutes {
   static String addCoreCourse = '/addCoreCourse';
   static String addElectiveCourse = '/addElectiveCourse';
   static String viewRegisteredCourse = '/viewRegisteredCourse';
-  
+  static String addAvlbCourses = '/addAvlbCourses';
+  static String viewAvlbCourses = '/viewAvlbCourses';
 }

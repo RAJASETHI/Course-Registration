@@ -1,8 +1,15 @@
 import 'package:dio/dio.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_application_1/Utils/my_store.dart';
 import 'package:flutter_application_1/Utils/routes.dart';
+import 'package:flutter_application_1/admin.dart';
+import 'package:flutter_application_1/student.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:velocity_x/velocity_x.dart';
+import 'package:google_fonts/google_fonts.dart';
+
+bool adding = false;
 
 class LoginPage extends StatefulWidget {
   @override
@@ -10,63 +17,202 @@ class LoginPage extends StatefulWidget {
 }
 
 class _LoginPageState extends State<LoginPage> {
-  String name = "";
-  List<String> type = ["Student", "Admin"];
-  int index = 1;
-  String password = "";
-  bool forAnimation = false;
+  TextEditingController username = TextEditingController();
+  TextEditingController password = TextEditingController();
+  TextEditingController role = TextEditingController();
   final _formKey = GlobalKey<FormState>();
 
-  void moveToHome() async {
+  _showPicker() {
+    showModalBottomSheet(
+        context: context,
+        shape: const RoundedRectangleBorder(
+            borderRadius:
+                const BorderRadius.vertical(top: Radius.circular(25.0))),
+        builder: (BuildContext bc) {
+          return SafeArea(
+            child: Container(
+              child: Wrap(
+                children: <Widget>[
+                  "Roles".text.bold.xl2.make().p12().centered(),
+                  ListTile(
+                      leading: const Icon(CupertinoIcons.person_alt_circle),
+                      title: const Text('Student'),
+                      onTap: () {
+                        role.text = "Student";
+                        setState(() {});
+                        Navigator.pop(context);
+                      }),
+                  ListTile(
+                      leading: const Icon(Icons.contacts_outlined),
+                      title: const Text('Admin'),
+                      onTap: () {
+                        role.text = "Admin";
+                        setState(() {});
+                        Navigator.pop(context);
+                      })
+                ],
+              ),
+            ),
+          );
+        });
+  }
 
-    // TODO: After Backend
+  Future<void> forgetPassword() async {
+    try {
+      final dio = Dio();
+      Response response = await dio.post(
+          'https://course-registration-lnmiit.herokuapp.com/student/resetPassword',
+          data: {
+            "userId": username.text,
+          });
+      if (response.data.toString() == "success") {
+        String msg = "Password successfully sent.";
+        print(msg);
+        Fluttertoast.showToast(msg: msg);
+      } else {
+        String msg = "User not found";
+        print(msg);
+        Fluttertoast.showToast(msg: msg);
+      }
+    } catch (e) {
+      print(e);
+      Fluttertoast.showToast(msg: "Something went wrong!");
+    }
+  }
+
+  _showPickerForgotPassword() {
+    showModalBottomSheet(
+        isScrollControlled: true,
+        shape: const RoundedRectangleBorder(
+            borderRadius:
+                const BorderRadius.vertical(top: const Radius.circular(25.0))),
+        context: context,
+        builder: (BuildContext bc) {
+          return SingleChildScrollView(
+            child: Padding(
+              padding: MediaQuery.of(context).viewInsets,
+              child: Container(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: <Widget>[
+                    "Forgot Password".text.bold.xl2.make().p12().centered(),
+                    CupertinoFormSection(children: [
+                      CupertinoFormRow(
+                        //padding: EdgeInsets.only(left: 0),
+                        child: CupertinoTextFormFieldRow(
+                          controller: username,
+                          style: GoogleFonts.poppins(),
+                          placeholder: "User ID",
+                          // prefix: "Email".text.make(),
+                          padding: const EdgeInsets.only(left: 0),
+                          keyboardType: TextInputType.emailAddress,
+                          validator: (value) {
+                            if (value!.isEmpty) {
+                              return "User ID can't be empty";
+                            }
+                            return null;
+                          },
+                          prefix: "User ID ".text.caption(context).make(),
+                        ),
+                      ),
+                      IconButton(
+                          onPressed: () {
+                            Navigator.pop(context);
+                            forgetPassword();
+                          },
+                          icon: const Icon(
+                            CupertinoIcons.right_chevron,
+                            size: 30,
+                          ))
+                    ])
+                  ],
+                ),
+              ),
+            ),
+          );
+        });
+  }
+
+  void moveToHome() async {
     if (_formKey.currentState!.validate()) {
-      if (index == 1) {
+      adding = true;
+      setState(() {});
+      if (role.text == "Student") {
         try {
           final Dio _dio = Dio();
           Response response = await _dio.post(
             'https://course-registration-lnmiit.herokuapp.com/student/verify',
-            data: {"userId": name, "passw": password},
+            data: {"userId": username.text, "passw": password.text},
+            options: Options(
+              followRedirects: false,
+              validateStatus: (status) {
+                return status! < 500;
+              },
+            ),
           );
 
           print('Login: ${response.data}');
 
-          bool success = response.data;
-          if (success) {
+          if (response.data.toString() == "User Not Found" ||
+              response.data.toString() == "Incorrect Password") {
+            Fluttertoast.showToast(msg: "Username or Password is wrong");
+            setState(() {
+              adding = false;
+            });
+          } else {
             Fluttertoast.showToast(msg: "Login Success as Student");
+            final MyStore store = VxState.store;
+            store.student = Student.fromMap(response.data);
+            print(store.student.name);
+            print(store.student.userid);
+
             await Navigator.pushReplacementNamed(
                 context, MyRoutes.studentHomePage);
-          } else {
-            Fluttertoast.showToast(msg: "Login Failed");
           }
         } catch (e) {
           Fluttertoast.showToast(
               msg: "Oops! Something went wrong. Try Again...");
           print('Error creating user: $e');
+          setState(() {
+            adding = false;
+          });
         }
-      } else {
+        adding = false;
+      } else if (role.text == "Admin") {
         try {
           final Dio _dio = Dio();
           Response response = await _dio.post(
             'https://course-registration-lnmiit.herokuapp.com/admin/verify',
-            data: {"userId": name, "passw": password},
+            data: {"userId": username.text, "passw": password.text},
           );
-
+          print(response.data);
           print('Login: ${response.data}');
 
-          bool success = response.data;
-          if (success) {
+          if (response.data.toString() == "Incorrect Password" ||
+              response.data.toString() == "User Not Found") {
+            Fluttertoast.showToast(msg: "Username or Password is wrong");
+            setState(() {
+              adding = false;
+            });
+          } else {
             Fluttertoast.showToast(msg: "Login Success as Admin");
+            final MyStore store = VxState.store;
+            store.admin = Admin.fromMap(response.data);
+            print(store.admin.name);
+            print(store.admin.userId);
+
             await Navigator.pushReplacementNamed(
                 context, MyRoutes.adminHomePage);
-          } else {
-            Fluttertoast.showToast(msg: "Login Failed");
           }
         } catch (e) {
           Fluttertoast.showToast(
               msg: "Oops! Something went wrong. Try Again...");
           print('Error creating user: $e');
+          setState(() {
+            adding = false;
+          });
         }
+        adding = false;
       }
     }
   }
@@ -77,134 +223,113 @@ class _LoginPageState extends State<LoginPage> {
       color: context.canvasColor,
       child: SingleChildScrollView(
         child: SafeArea(
-          child: Center(
-            child: Form(
-              key: _formKey,
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.start,
-                children: [
-                  VxArc(
-                    height: 50,
-                    child: Image.asset(
-                      "assets/images/welcomeImage.png",
-                      fit: BoxFit.cover,
-                    ),
+          child: Form(
+            key: _formKey,
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.start,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                VxArc(
+                  height: 50,
+                  child: Image.asset(
+                    "assets/images/welcomeImage.png",
+                    fit: BoxFit.cover,
                   ),
-                  const SizedBox(
-                    height: 20.0,
-                  ),
-                  Padding(
-                    padding:
-                        const EdgeInsets.only(top: 16, left: 32.0, right: 32),
-                    child: Text(
-                      name == "" ? "Welcome" : "Welcome, $name",
-                      style: const TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 30,
+                ),
+                const SizedBox(
+                  height: 20.0,
+                ),
+                Text(
+                  "Sign-In",
+                  style: GoogleFonts.lato(
+                      fontSize: 50, fontWeight: FontWeight.bold),
+                ).centered(),
+                CupertinoFormSection(
+                  backgroundColor: Colors.transparent,
+                  children: [
+                    CupertinoFormRow(
+                      //padding: EdgeInsets.only(left: 0),
+                      child: CupertinoTextFormFieldRow(
+                        style: GoogleFonts.poppins(),
+                        controller: username,
+                        placeholder: "Enter your ID",
+                        prefix: "User ID      ".text.caption(context).make(),
+                        padding: const EdgeInsets.only(left: 0),
+                        keyboardType: TextInputType.emailAddress,
+                        validator: (value) {
+                          if (value!.isEmpty) {
+                            return "User ID can't be empty";
+                          }
+                          return null;
+                        },
                       ),
                     ),
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(
-                        vertical: 16.0, horizontal: 32.0),
-                    child: Column(
-                      children: [
-                        TextFormField(
-                          decoration: const InputDecoration(
-                            hintText: "Enter Username",
-                            labelText: "Username",
-                          ),
-                          validator: (value) {
-                            if (value!.isEmpty) {
-                              return "Username can't be empty";
-                            }
-                            return null;
-                          },
-                          onChanged: (value) {
-                            setState(() {
-                              name = value;
-                            });
-                          },
-                        ),
-                        TextFormField(
-                            obscureText: true,
-                            decoration: const InputDecoration(
-                                hintText: "Enter Password",
-                                labelText: "Password"),
-                            validator: (value) {
-                              if (value!.isEmpty) {
-                                return "Password can't be empty";
-                              } else if (value.length < 4) {
-                                return "Password should consist of atleast 6 characters";
-                              }
-                              return null;
-                            },
-                            onChanged: (value) {
-                              setState(() {
-                                password = value;
-                              });
-                            }),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            "Role".text.xl.make(),
-                            Container(
-                              padding: const EdgeInsets.all(20),
-                              child: DropdownButton(
-                                borderRadius: BorderRadius.circular(20),
-                                value: index,
-                                items: [
-                                  DropdownMenuItem(
-                                    child: Text(type[0]),
-                                    value: 1,
-                                  ),
-                                  DropdownMenuItem(
-                                    child: Text(type[1]),
-                                    value: 2,
-                                  )
-                                ],
-                                onChanged: (int? value) {
-                                  print(value);
-                                  index = value!;
-                                  setState(() {});
-                                },
-                                icon: const Icon(Icons.arrow_drop_down_circle),
-                                // hint: const Text("Select item")
-                              ),
+                    CupertinoFormRow(
+                      //padding: EdgeInsets.only(left: 0),
+                      child: CupertinoTextFormFieldRow(
+                        style: GoogleFonts.poppins(),
+                        obscureText: true,
+                        controller: password,
+                        validator: (value) {
+                          if (value!.isEmpty) {
+                            return "Password can't be empty";
+                          }
+                          return null;
+                        },
+                        placeholder: "Enter your Password ",
+                        keyboardType: TextInputType.emailAddress,
+                        prefix: "Password  ".text.caption(context).make(),
+                        padding: const EdgeInsets.only(left: 0),
+                      ),
+                    ),
+                    CupertinoTextFormFieldRow(
+                      style: GoogleFonts.poppins(),
+                      controller: role,
+                      onTap: _showPicker,
+                      placeholder: "Tap to Show Roles",
+                      validator: (value) {
+                        if (value!.isEmpty) {
+                          return "Role can't be empty";
+                        }
+                        return null;
+                      },
+                      decoration: const BoxDecoration(color: Colors.white),
+                      prefix: "Role            ".text.caption(context).make(),
+                      readOnly: true,
+                    ),
+                  ],
+                ).pLTRB(32, 32, 32, 5),
+                GestureDetector(
+                        onTap: _showPickerForgotPassword,
+                        child: "Forgot Password?".text.caption(context).make())
+                    .centered(),
+                adding
+                    ? const CupertinoActivityIndicator(
+                        radius: 20,
+                      ).centered().pOnly(top: 40)
+                    : Container(
+                        width: 60,
+                        height: 60,
+                        decoration: BoxDecoration(
+                          color: Colors.black,
+                          borderRadius: BorderRadius.circular(50),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.grey.withOpacity(0.5),
+                              blurRadius: 7,
+                              offset: const Offset(
+                                  0, 3), // changes position of shadow
                             ),
                           ],
-                        )
-                      ],
-                    ),
-                  ),
-                  // const SizedBox(
-                  //   height: 10.0,
-                  // ),
-                  Material(
-                    color: Colors.blueAccent,
-                    borderRadius: BorderRadius.circular(forAnimation ? 40 : 8),
-                    child: InkWell(
-                      onTap: () => moveToHome(),
-                      child: AnimatedContainer(
-                        duration: Duration(seconds: 1),
-                        alignment: Alignment.center,
-                        child: forAnimation
-                            ? const Icon(
-                                Icons.done,
-                                color: Colors.white,
-                              )
-                            : const Text(
-                                "Login",
-                                style: TextStyle(
-                                    color: Colors.white, fontSize: 15),
-                              ),
-                        width: forAnimation ? 40 : 80,
-                        height: 40,
-                      ),
-                    ),
-                  )
-                ],
-              ),
+                        ),
+                        child: IconButton(
+                          onPressed: () => moveToHome(),
+                          icon: const Icon(Icons.send_outlined),
+                          iconSize: 40,
+                          color: Colors.white,
+                        ).pOnly(left: 4),
+                      ).pOnly(top: 40).centered()
+              ],
             ),
           ),
         ),
