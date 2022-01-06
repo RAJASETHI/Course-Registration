@@ -7,7 +7,11 @@ import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:velocity_x/velocity_x.dart';
 
+import 'Utils/my_store.dart';
+import 'course.dart';
+
 bool adding = false;
+bool adding2 = false;
 
 class AddStudent extends StatefulWidget {
   const AddStudent({Key? key}) : super(key: key);
@@ -81,8 +85,9 @@ class _AddStudentState extends State<AddStudent> {
           Navigator.pop(context);
           Fluttertoast.showToast(msg: "Student Successfully Added");
         } else {
-          print("Not able to add admin...");
-          Fluttertoast.showToast(msg: "Not able to add admin...");
+          print(response.data);
+          print("Not able to add student...");
+          Fluttertoast.showToast(msg: "Not added. StudentID already exist.");
         }
       } catch (e) {
         Fluttertoast.showToast(msg: 'Error creating user: $e');
@@ -95,22 +100,62 @@ class _AddStudentState extends State<AddStudent> {
 
   late File file;
   late String fileName = '';
+  final MyStore store = VxState.store;
 
   selectAttachment() async {
     FilePickerResult? result = await FilePicker.platform
-        .pickFiles(type: FileType.custom, allowedExtensions: ["csv"]);
+        .pickFiles(type: FileType.custom, allowedExtensions: ["xlsx"]);
     if (result != null) {
       file = File(result.files.single.path.toString());
       fileName = result.files.first.name;
       print('${file.readAsBytesSync()}');
       print(fileName);
-      // setState(() {
-      //   haveAttachment = true;
-      // });
-    } else {
-      // setState(() {
-      //   haveAttachment = false;
-      // });
+      try {
+        FormData formData = FormData.fromMap({
+          "file":
+              await MultipartFile.fromFile(file.path, filename: "file.xlsx"),
+        });
+
+        final Dio _dio = Dio();
+        Response response = await _dio.post(
+            'https://course-registration-lnmiit.herokuapp.com/student/registerMultiple',
+            data: formData);
+
+        print('Adding: ${response.data}');
+        if (response.data is List) {
+          List<dynamic> res = response.data;
+
+          Response response_ = await _dio.get(
+            'https://course-registration-lnmiit.herokuapp.com/student/list',
+          );
+          CourseList.courseList = List.from(response_.data)
+              .map((itemMap) => Course.fromMap(itemMap))
+              .toList();
+          store.courseList = CourseList.courseList;
+          Navigator.pop(context);
+          setState(() {
+            adding = false;
+            adding2 = false;
+          });
+          Fluttertoast.showToast(
+              msg: "${res.length} Student successfully added");
+        } else {
+          print("Not Added");
+          Fluttertoast.showToast(msg: "Please check your file and try again");
+          setState(() {
+            adding = false;
+            adding2 = false;
+          });
+        }
+      } catch (e) {
+        print(e);
+        Fluttertoast.showToast(msg: e.toString());
+        setState(() {
+          adding2 = false;
+          adding2 = false;
+        });
+        Navigator.pop(context);
+      }
     }
   }
 
@@ -249,7 +294,7 @@ class _AddStudentState extends State<AddStudent> {
                   ).pOnly(left: 20, right: 20),
                   30.heightBox,
                   adding
-                      ? CupertinoActivityIndicator(
+                      ? const CupertinoActivityIndicator(
                           radius: 20,
                         ).centered()
                       : GestureDetector(
@@ -295,30 +340,34 @@ class _AddStudentState extends State<AddStudent> {
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
-                      Container(
-                        width: 70,
-                        height: 70,
-                        decoration: BoxDecoration(
-                          color: Colors.black,
-                          borderRadius: BorderRadius.circular(50),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.grey.withOpacity(0.5),
-                              blurRadius: 7,
-                              offset: const Offset(
-                                  0, 3), // changes position of shadow
+                      adding2
+                          ? const CupertinoActivityIndicator(
+                              radius: 20,
+                            )
+                          : Container(
+                              width: 70,
+                              height: 70,
+                              decoration: BoxDecoration(
+                                color: Colors.black,
+                                borderRadius: BorderRadius.circular(50),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.grey.withOpacity(0.5),
+                                    blurRadius: 7,
+                                    offset: const Offset(
+                                        0, 3), // changes position of shadow
+                                  ),
+                                ],
+                              ),
+                              child: IconButton(
+                                onPressed: selectAttachment,
+                                icon: const Icon(
+                                  CupertinoIcons.cloud_upload,
+                                  color: Colors.white,
+                                  size: 60,
+                                ),
+                              ),
                             ),
-                          ],
-                        ),
-                        child: IconButton(
-                          onPressed: selectAttachment,
-                          icon: const Icon(
-                            CupertinoIcons.cloud_upload,
-                            color: Colors.white,
-                            size: 60,
-                          ),
-                        ),
-                      ),
                       "Upload a .xlsx File".text.make().p12()
                     ],
                   ).centered()

@@ -49,7 +49,7 @@ class _AddCourseCoreState extends State<AddCourseCore> {
       );
       print(response_.data);
       registered = true;
-      Fluttertoast.showToast(msg: "Core Coure Registered Successfully");
+      Fluttertoast.showToast(msg: "Core Course Registered Successfully");
       setState(() {
         adding = false;
       });
@@ -79,7 +79,7 @@ class _AddCourseCoreState extends State<AddCourseCore> {
     try {
       final Dio _dio = Dio();
       Response response = await _dio.post(
-        'https://course-registration-lnmiit.herokuapp.com/course/getCompulsoryCourses',
+        'https://course-registration-lnmiit.herokuapp.com/course/getCoreCourses',
         data: {
           "branch": store.student.branch,
           "semester": getSemesterFromJoiningYear()

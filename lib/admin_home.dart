@@ -30,6 +30,9 @@ class _AdmHomeState extends State<AdmHome> {
 
   Future<void> updatePassword() async {
     try {
+      setState(() {
+        showLoading = true;
+      });
       final dio = Dio();
       Response response = await dio.post(
           'https://course-registration-lnmiit.herokuapp.com/admin/updatePassword',
@@ -45,7 +48,7 @@ class _AdmHomeState extends State<AdmHome> {
         oldPassw.clear();
         newPass.clear();
       } else {
-        String msg = "Password not changed.";
+        String msg = "Incorrect Password";
         print(msg);
         Fluttertoast.showToast(msg: msg);
       }
@@ -53,6 +56,9 @@ class _AdmHomeState extends State<AdmHome> {
       print(e);
       Fluttertoast.showToast(msg: "Something went wrong!");
     }
+    setState(() {
+      showLoading = false;
+    });
   }
 
   Future<void> fetchCoursesFromSem() async {
@@ -372,7 +378,7 @@ class _AdmHomeState extends State<AdmHome> {
                           mainAxisAlignment: MainAxisAlignment.spaceAround,
                           children: [
                             const Icon(
-                              CupertinoIcons.person_3,
+                              CupertinoIcons.person_3_fill,
                               color: Colors.black,
                               size: 25,
                             ),

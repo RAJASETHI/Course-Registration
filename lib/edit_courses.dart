@@ -40,12 +40,12 @@ class _EditCoursesState extends State<EditCourses> {
   final MyStore store = VxState.store;
   final _formKey2 = GlobalKey<FormState>();
 
-  List<String> cType = ["COMPULSORY", "ELECTIVE"];
+  List<String> cType = ["CORE", "ELECTIVE"];
 
   _showPickerCType() {
     showModalBottomSheet(
         context: context,
-         shape: RoundedRectangleBorder(
+        shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.vertical(top: Radius.circular(25.0))),
         builder: (BuildContext bc) {
           return SingleChildScrollView(
@@ -177,6 +177,7 @@ class _EditCoursesState extends State<EditCourses> {
                             return null;
                           },
                           placeholder: "ID",
+                          readOnly: true,
                           prefix: "ID".text.caption(context).make(),
                           padding: EdgeInsets.only(left: 0),
                         ),

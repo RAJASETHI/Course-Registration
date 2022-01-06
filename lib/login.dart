@@ -26,8 +26,7 @@ class _LoginPageState extends State<LoginPage> {
     showModalBottomSheet(
         context: context,
         shape: const RoundedRectangleBorder(
-            borderRadius:
-                const BorderRadius.vertical(top: Radius.circular(25.0))),
+            borderRadius: BorderRadius.vertical(top: Radius.circular(25.0))),
         builder: (BuildContext bc) {
           return SafeArea(
             child: Container(
@@ -70,6 +69,7 @@ class _LoginPageState extends State<LoginPage> {
         print(msg);
         Fluttertoast.showToast(msg: msg);
       } else {
+        print(response.data);
         String msg = "User not found";
         print(msg);
         Fluttertoast.showToast(msg: msg);
@@ -221,8 +221,8 @@ class _LoginPageState extends State<LoginPage> {
   Widget build(BuildContext context) {
     return Material(
       color: context.canvasColor,
-      child: SingleChildScrollView(
-        child: SafeArea(
+      child: SafeArea(
+        child: SingleChildScrollView(
           child: Form(
             key: _formKey,
             child: Column(
@@ -277,7 +277,6 @@ class _LoginPageState extends State<LoginPage> {
                           return null;
                         },
                         placeholder: "Enter your Password ",
-                        keyboardType: TextInputType.emailAddress,
                         prefix: "Password  ".text.caption(context).make(),
                         padding: const EdgeInsets.only(left: 0),
                       ),

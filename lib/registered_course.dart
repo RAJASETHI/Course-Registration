@@ -122,8 +122,8 @@ class _RegisteredCourseState extends State<RegisteredCourse> {
                       ),
                     ),
                     showLoading
-                        ? const CircularProgressIndicator(
-                            color: Colors.grey,
+                        ? const CupertinoActivityIndicator(
+                            radius: 20,
                           ).centered().pOnly(top: 200)
                         : VxBuilder(
                             mutations: {SearchMutation},
@@ -140,7 +140,7 @@ class _RegisteredCourseState extends State<RegisteredCourse> {
                                     child: Column(
                                       children: [
                                         Container(
-                                          height: 50,
+                                          height: 70,
                                           child: Row(
                                             mainAxisAlignment:
                                                 MainAxisAlignment.spaceAround,

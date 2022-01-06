@@ -6,6 +6,7 @@ import 'package:flutter_application_1/Utils/routes.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:velocity_x/velocity_x.dart';
 import 'Utils/my_store.dart';
+import 'course.dart';
 import 'course_availability_class.dart';
 
 bool showLoading = false;
@@ -21,6 +22,86 @@ class _StuHomeState extends State<StuHome> {
 
   final MyStore store = VxState.store;
 
+  Future<void> doEnrollment() async {
+    if (store.courseList!.isNotEmpty) {
+      try {
+        showLoading = true;
+        setState(() {});
+
+        final Dio _dio = Dio();
+        Response response;
+
+        await _dio.post(
+          'https://course-registration-lnmiit.herokuapp.com/course/isEnrolledInCourse',
+          data: {
+            "student_id": store.student.userid,
+            "course_id": store.courseList![0].course_id
+          },
+        ).then((response_) {
+          print("response is: " + response_.toString());
+          if (!(response_.data)) {
+            store.courseList?.forEach((course) async {
+              response = await _dio.post(
+                'https://course-registration-lnmiit.herokuapp.com/course/addEnrollment',
+                data: {
+                  "student_id": store.student.userid,
+                  "course_id": course.course_id
+                },
+              );
+              print(response.data);
+              Fluttertoast.showToast(
+                  msg: "Core Course Registered Successfully");
+            });
+          }
+          setState(() {
+            showLoading = false;
+          });
+        });
+      } catch (e) {
+        print(e);
+        Fluttertoast.showToast(msg: e.toString());
+        setState(() {
+          showLoading = false;
+        });
+        Navigator.pop(context);
+      }
+    }
+  }
+
+  int getSemesterFromJoiningYear() {
+    DateTime curDate = DateTime.now();
+    return curDate.month > 6
+        ? 1 +
+            2 *
+                (curDate.year -
+                    int.parse(store.student.joining_year.toString()))
+        : 2 * (curDate.year - int.parse(store.student.joining_year.toString()));
+  }
+
+  Future<void> fetchCourses() async {
+    store.courseList?.clear();
+    setState(() {
+      showLoading = true;
+    });
+    try {
+      final Dio _dio = Dio();
+      Response response = await _dio.post(
+        'https://course-registration-lnmiit.herokuapp.com/course/getCoreCourses',
+        data: {
+          "branch": store.student.branch,
+          "semester": getSemesterFromJoiningYear()
+        },
+      );
+      print(response.data);
+      CourseList.courseList = List.from(response.data)
+          .map((itemMap) => Course.fromMap(itemMap))
+          .toList();
+      store.courseList = CourseList.courseList;
+    } catch (e) {
+      print(e);
+    }
+  }
+
   @override
   void initState() {
     super.initState();
@@ -28,6 +109,8 @@ class _StuHomeState extends State<StuHome> {
 
   Future<void> updatePassword() async {
     try {
+      showLoading = true;
+      setState(() {});
       final dio = Dio();
       Response response = await dio.post(
           'https://course-registration-lnmiit.herokuapp.com/student/updatePassword',
@@ -36,6 +119,7 @@ class _StuHomeState extends State<StuHome> {
             "passw": oldPassw.text,
             "newpassw": newPass.text
           });
+      print(response.data);
       if (response.data.toString() == "Success") {
         String msg = "Password successfully changed.";
         print(msg);
@@ -43,12 +127,18 @@ class _StuHomeState extends State<StuHome> {
         oldPassw.clear();
         newPass.clear();
       } else {
-        String msg = "Password not changed.";
+        String msg = "Incorrect Password";
         print(msg);
         Fluttertoast.showToast(msg: msg);
       }
+      setState(() {
+        showLoading = false;
+      });
     } catch (e) {
       print(e);
+      setState(() {
+        showLoading = false;
+      });
       Fluttertoast.showToast(msg: "Something went wrong!");
     }
   }
@@ -72,7 +162,7 @@ class _StuHomeState extends State<StuHome> {
                       CupertinoFormRow(
                         //padding: EdgeInsets.only(left: 0),
                         child: CupertinoTextFormFieldRow(
-                          // controller: userID,
+                          controller: oldPassw,
                           obscureText: true,
                           placeholder: "Old Password",
                           // prefix: "Email".text.make(),
@@ -90,7 +180,7 @@ class _StuHomeState extends State<StuHome> {
                       CupertinoFormRow(
                         //padding: EdgeInsets.only(left: 0),
                         child: CupertinoTextFormFieldRow(
-                          // controller: userID,
+                          controller: newPass,
                           obscureText: true,
                           placeholder: "New Password",
                           // prefix: "Email".text.make(),
@@ -130,8 +220,8 @@ class _StuHomeState extends State<StuHome> {
       backgroundColor: Colors.white,
       body: SafeArea(
         child: showLoading
-            ? const CircularProgressIndicator(
-                color: Colors.grey,
+            ? const CupertinoActivityIndicator(
+                radius: 20,
               ).centered()
             : SingleChildScrollView(
                 child: Column(
@@ -167,28 +257,7 @@ class _StuHomeState extends State<StuHome> {
                             "Student Panel".text.xl5.bold.center.white.make(),
                           ],
                         )).centered(),
-
-                    // const CircleAvatar(
-                    //   radius: 100.0,
-                    //   backgroundImage: NetworkImage(
-                    //       "https://media.istockphoto.com/photos/learn-to-love-yourself-first-picture-id1291208214?b=1&k=20&m=1291208214&s=170667a&w=0&h=sAq9SonSuefj3d4WKy4KzJvUiLERXge9VgZO-oqKUOo="),
-                    // ).p12(),
                     10.heightBox,
-                    // Divider(
-                    //   thickness: 1,
-                    // ),
-
-                    // "Welcome! ${store.student.name.toString()}."
-                    //     .text
-                    //     .xl
-                    //     .caption(context)
-                    //     .make()
-                    //     .centered(),
-
-                    // Divider(
-                    //   thickness: 2,
-                    // ),
-
                     Container(
                         // height: 50,
                         width: MediaQuery.of(context).size.width,
@@ -230,7 +299,7 @@ class _StuHomeState extends State<StuHome> {
                                   ),
                                 ],
                               ),
-                            ),
+                            ).pOnly(left: 4),
                             20.widthBox,
                             Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
@@ -253,10 +322,9 @@ class _StuHomeState extends State<StuHome> {
                                     .xl
                                     .make()
                               ],
-                            )
+                            ).p8().expand()
                           ],
                         )).p16(),
-
                     Container(
                         width: 180,
                         height: 50,
@@ -288,10 +356,14 @@ class _StuHomeState extends State<StuHome> {
                             "Functions".text.xl2.bold.center.white.make(),
                           ],
                         )).centered().p16(),
-
                     GestureDetector(
-                      onTap: () =>
-                          Navigator.pushNamed(context, MyRoutes.addCoreCourse),
+                      onTap: () async {
+                        await fetchCourses();
+                        await doEnrollment();
+                        print("changingPages");
+                        Navigator.pushNamed(
+                            context, MyRoutes.addElectiveCourse);
+                      },
                       child: Container(
                         height: 50,
                         width: MediaQuery.of(context).size.width,

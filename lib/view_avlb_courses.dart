@@ -200,7 +200,7 @@ class _ViewAvlbCoursesState extends State<ViewAvlbCourses> {
                                         mainAxisAlignment:
                                             MainAxisAlignment.spaceAround,
                                         children: [
-                                          "${store.courseAvlbList![index].course_id.toString()}"
+                                          store.courseAvlbList![index].course_id.toString()
                                               .text
                                               .bold
                                               .center
@@ -209,7 +209,7 @@ class _ViewAvlbCoursesState extends State<ViewAvlbCourses> {
                                           const VerticalDivider(
                                             thickness: 1,
                                           ),
-                                          "${store.courseAvlbList![index].semester.toString()}"
+                                          store.courseAvlbList![index].semester.toString()
                                               .text
                                               .bold
                                               .center
@@ -217,7 +217,7 @@ class _ViewAvlbCoursesState extends State<ViewAvlbCourses> {
                                           const VerticalDivider(
                                             thickness: 1,
                                           ),
-                                          "${store.courseAvlbList![index].branch.toString()}"
+                                          store.courseAvlbList![index].branch.toString()
                                               .text
                                               .bold
                                               .center
@@ -226,7 +226,7 @@ class _ViewAvlbCoursesState extends State<ViewAvlbCourses> {
                                           const VerticalDivider(
                                             thickness: 1,
                                           ),
-                                          "${store.courseAvlbList![index].grp.toString()}"
+                                          store.courseAvlbList![index].grp.toString()
                                               .text
                                               .bold
                                               .center
@@ -236,53 +236,52 @@ class _ViewAvlbCoursesState extends State<ViewAvlbCourses> {
                                       ),
                                     ),
                                     const Divider(),
-                                    Row(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.spaceAround,
-                                        children: [
-                                          Container(
-                                            padding: const EdgeInsets.all(4),
-                                            decoration: BoxDecoration(
-                                              color: Colors.black,
-                                              borderRadius:
-                                                  BorderRadius.circular(30),
+                                    Container(
+                                      height: 30,
+                                      width: MediaQuery.of(context).size.width,
+                                      padding: const EdgeInsets.all(4),
+                                      decoration: BoxDecoration(
+                                        color: Colors.black,
+                                        borderRadius:
+                                            BorderRadius.circular(30),
+                                      ),
+                                      child:
+                                          "Available Seats: ${store.courseAvlbList![index].availableseats.toString()}"
+                                              .text
+                                              .center
+                                              .white
+                                              .make(),
+                                    ),
+                                    const Divider(),
+                                    GestureDetector(
+                                      onTap: () => _showPickerChangeSeats(
+                                          store.courseAvlbList![index]),
+                                      child: Container(
+                                        height: 30,
+                                        padding: const EdgeInsets.all(4),
+                                        decoration: BoxDecoration(
+                                          color: Colors.black,
+                                          borderRadius:
+                                              BorderRadius.circular(30),
+                                        ),
+                                        child: Row(
+                                        mainAxisAlignment: MainAxisAlignment.center,
+                                          children: [
+                                            "Total Seats: ${store.courseAvlbList![index].totalseats.toString()}"
+                                                .text
+                                                .center
+                                                .white
+                                                .make(),
+                                                VerticalDivider(),
+                                            const Icon(
+                                              CupertinoIcons.pencil_circle,
+                                              color: Vx.white,
+                                              size: 20,
                                             ),
-                                            child:
-                                                "Available Seats: ${store.courseAvlbList![index].availableseats.toString()}"
-                                                    .text
-                                                    .center
-                                                    .white
-                                                    .make(),
-                                          ),
-                                          const VerticalDivider(
-                                            thickness: 1,
-                                          ),
-                                          GestureDetector(
-                                            onTap: () => _showPickerChangeSeats(
-                                                store.courseAvlbList![index]),
-                                            child: Container(
-                                              padding: const EdgeInsets.all(4),
-                                              decoration: BoxDecoration(
-                                                color: Colors.black,
-                                                borderRadius:
-                                                    BorderRadius.circular(30),
-                                              ),
-                                              child: Row(
-                                                children: [
-                                                  "Total Seats: ${store.courseAvlbList![index].totalseats.toString()}"
-                                                      .text
-                                                      .center
-                                                      .white
-                                                      .make(),
-                                                  const Icon(
-                                                    CupertinoIcons.pencil,
-                                                    color: Vx.white,
-                                                  ),
-                                                ],
-                                              ),
-                                            ),
-                                          ),
-                                        ]),
+                                          ],
+                                        ),
+                                      ),
+                                    ),
                                   ],
                                 ),
                                 decoration: BoxDecoration(

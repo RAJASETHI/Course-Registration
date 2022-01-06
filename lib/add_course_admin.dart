@@ -110,9 +110,9 @@ class _AddCourseAdmState extends State<AddCourseAdm> {
                     "Type of Course".text.bold.xl2.make().p12().centered(),
                     ListTile(
                         // leading: Icon(CupertinoIcons.fir),
-                        title: const Text('COMPULSORY').centered(),
+                        title: const Text('CORE').centered(),
                         onTap: () {
-                          type.text = "COMPULSORY";
+                          type.text = "CORE";
                           setState(() {});
                         }),
                     ListTile(
@@ -172,6 +172,7 @@ class _AddCourseAdmState extends State<AddCourseAdm> {
         } catch (e) {
           setState(() {
             adding = false;
+            adding2 = false;
           });
           Fluttertoast.showToast(msg: 'Some error occured');
           print('Error: $e');

@@ -191,6 +191,7 @@ class _AddCourseElectiveState extends State<AddCourseElective> {
   }
 
   Future<void> fetchCourses() async {
+    registered.clear();
     store.courseList?.clear();
     setState(() {});
     try {
@@ -202,6 +203,7 @@ class _AddCourseElectiveState extends State<AddCourseElective> {
           "semester": getSemesterFromJoiningYear()
         },
       );
+      print("Elective response: " + response.data.toString());
       Response temp = response;
       List.from(temp.data)
           .map((itemMap) => Course.fromMap(itemMap))
@@ -222,8 +224,6 @@ class _AddCourseElectiveState extends State<AddCourseElective> {
       CourseList.courseList = await List.from(temp.data)
           .map((itemMap) => Course.fromMap(itemMap))
           .toList();
-
-      print("No doing");
       store.courseList = CourseList.courseList;
 
       setState(() {});
@@ -315,6 +315,7 @@ class _AddCourseElectiveState extends State<AddCourseElective> {
                         mutations: const {SearchMutation},
                         builder: (context, _, __) => ListView.builder(
                           shrinkWrap: true,
+                          physics: NeverScrollableScrollPhysics(),
                           itemCount: store.courseList!.length,
                           itemBuilder: (context, index) {
                             return InkWell(
@@ -325,7 +326,7 @@ class _AddCourseElectiveState extends State<AddCourseElective> {
                                 child: Column(
                                   children: [
                                     Container(
-                                      height: 50,
+                                      // height: 50,
                                       child: Row(
                                         mainAxisAlignment:
                                             MainAxisAlignment.spaceAround,
@@ -348,7 +349,7 @@ class _AddCourseElectiveState extends State<AddCourseElective> {
                                             child:
                                                 "${store.courseList![index].coursename}"
                                                     .text
-                                                    .xl
+                                                    .xl.bold
                                                     .center
                                                     .make(),
                                           ),
