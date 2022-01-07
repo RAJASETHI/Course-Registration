@@ -16,7 +16,7 @@ import 'course.dart';
 bool showLoading = false;
 bool saved = false;
 List<bool> adding = [];
-List<bool> registered = [];
+Set<String> registeredGrpId = {};
 
 class AddCourseElective extends StatefulWidget {
   const AddCourseElective({Key? key}) : super(key: key);
@@ -27,6 +27,7 @@ class AddCourseElective extends StatefulWidget {
 
 class _AddCourseElectiveState extends State<AddCourseElective> {
   final MyStore store = VxState.store;
+  Map<String, bool> registered = {};
 
   int getSemesterFromJoiningYear() {
     DateTime curDate = DateTime.now();
@@ -39,6 +40,10 @@ class _AddCourseElectiveState extends State<AddCourseElective> {
   }
 
   Future<void> doEnrollment(Course course, int index) async {
+    if (registeredGrpId.contains(course.grp)) {
+      Fluttertoast.showToast(msg: "You can't register courses of same group.");
+      return;
+    }
     try {
       adding[index] = true;
       setState(() {});
@@ -53,6 +58,7 @@ class _AddCourseElectiveState extends State<AddCourseElective> {
           "semester": getSemesterFromJoiningYear().toString()
         },
       );
+      print(response.data);
       if (response.data.toString() != "Seats Not Available") {
         store.courseList![index].availableseats = response.data;
         response = await _dio.post(
@@ -63,12 +69,16 @@ class _AddCourseElectiveState extends State<AddCourseElective> {
           },
         );
         if (response.data.toString() == "success") {
-          registered[index] = !registered[index];
+          registered[course.course_id] =
+              !(registered[course.course_id] as bool);
           print(registered[index]);
+          registeredGrpId.add(course.grp);
           setState(() {
             adding[index] = false;
           });
         }
+      } else {
+        Fluttertoast.showToast(msg: "No Seats Available. Please Refresh.");
       }
 
       setState(() {
@@ -147,7 +157,9 @@ class _AddCourseElectiveState extends State<AddCourseElective> {
           },
         );
         if (response.data.toString() == "success") {
-          registered[index] = !registered[index];
+          registered[course.course_id] =
+              !(registered[course.course_id] as bool);
+          registeredGrpId.remove(course.grp);
           setState(() {
             adding[index] = false;
           });
@@ -167,31 +179,9 @@ class _AddCourseElectiveState extends State<AddCourseElective> {
     }
   }
 
-  Future<void> checkRegistered() async {
-    try {
-      final Dio _dio = Dio();
-      Response response;
-      CourseList.courseList?.forEach((element) async {
-        response = await _dio.post(
-          'https://course-registration-lnmiit.herokuapp.com/course/isEnrolledInCourse',
-          data: {
-            "student_id": store.student.userid,
-            "course_id": element.course_id
-          },
-        );
-        print(response.data);
-        registered.add(response.data);
-      });
-    } catch (e) {
-      print(e);
-      Fluttertoast.showToast(msg: e.toString());
-      setState(() {});
-      Navigator.pop(context);
-    }
-  }
-
   Future<void> fetchCourses() async {
     registered.clear();
+    registeredGrpId.clear();
     store.courseList?.clear();
     setState(() {});
     try {
@@ -217,13 +207,24 @@ class _AddCourseElectiveState extends State<AddCourseElective> {
           },
         );
         print(response.data);
-        registered.add(response.data);
+        registered[element.course_id] = response.data as bool;
+        if (response.data) {
+          registeredGrpId.add(element.grp);
+        }
         adding.add(false);
+        print("Reg grp id: " + registeredGrpId.toString());
         if (registered.length == CourseList.courseList!.length) setState(() {});
       });
       CourseList.courseList = await List.from(temp.data)
           .map((itemMap) => Course.fromMap(itemMap))
           .toList();
+
+      CourseList.courseList?.sort((a, b) {
+        return a.grp
+            .toString()
+            .toLowerCase()
+            .compareTo(b.grp.toString().toLowerCase());
+      });
       store.courseList = CourseList.courseList;
 
       setState(() {});
@@ -300,7 +301,7 @@ class _AddCourseElectiveState extends State<AddCourseElective> {
                         onChanged: (value) => SearchMutation(value),
                         borderRadius: BorderRadius.circular(10),
                       ).pLTRB(20, 20, 20, 20),
-                      Container(
+                      SizedBox(
                         height: 50,
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.spaceAround,
@@ -315,59 +316,49 @@ class _AddCourseElectiveState extends State<AddCourseElective> {
                         mutations: const {SearchMutation},
                         builder: (context, _, __) => ListView.builder(
                           shrinkWrap: true,
-                          physics: NeverScrollableScrollPhysics(),
+                          physics: const NeverScrollableScrollPhysics(),
                           itemCount: store.courseList!.length,
                           itemBuilder: (context, index) {
                             return InkWell(
                               child: Container(
-                                // height: 200,
                                 padding: const EdgeInsets.symmetric(
                                     vertical: 10, horizontal: 10),
                                 child: Column(
                                   children: [
-                                    Container(
-                                      // height: 50,
-                                      child: Row(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.spaceAround,
-                                        children: [
-                                          Container(
-                                            width: 50,
-                                            child:
-                                                "${store.courseList![index].course_id}"
-                                                    .text
-                                                    .xl
-                                                    .center
-                                                    .make()
-                                                    .pOnly(left: 10),
-                                          ),
-                                          const VerticalDivider(
-                                            thickness: 1,
-                                          ),
-                                          Container(
-                                            width: 150,
-                                            child:
-                                                "${store.courseList![index].coursename}"
-                                                    .text
-                                                    .xl.bold
-                                                    .center
-                                                    .make(),
-                                          ),
-                                          const VerticalDivider(
-                                            thickness: 1,
-                                          ),
-                                          Container(
-                                            width: 40,
-                                            child:
-                                                "${store.courseList![index].credits}"
-                                                    .text
-                                                    .xl
-                                                    .center
-                                                    .make()
-                                                    .pOnly(right: 10),
-                                          ),
-                                        ],
-                                      ),
+                                    Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.spaceAround,
+                                      children: [
+                                        SizedBox(
+                                          width: 50,
+                                          child: store.courseList![index]
+                                              .course_id.text.xl.center
+                                              .make()
+                                              .pOnly(left: 10),
+                                        ),
+                                        const VerticalDivider(
+                                          thickness: 1,
+                                        ),
+                                        SizedBox(
+                                          width: 150,
+                                          child: store.courseList![index]
+                                              .coursename.text.xl.bold.center
+                                              .make(),
+                                        ),
+                                        const VerticalDivider(
+                                          thickness: 1,
+                                        ),
+                                        SizedBox(
+                                          width: 40,
+                                          child:
+                                              "${store.courseList![index].credits}"
+                                                  .text
+                                                  .xl
+                                                  .center
+                                                  .make()
+                                                  .pOnly(right: 10),
+                                        ),
+                                      ],
                                     ).pOnly(bottom: 10),
                                     Row(
                                       mainAxisAlignment:
@@ -387,12 +378,13 @@ class _AddCourseElectiveState extends State<AddCourseElective> {
                                                     .white
                                                     .make()),
                                         Container(
-                                          // width: 70,
-                                          // height: 80,
                                           decoration: BoxDecoration(
-                                            color: store.courseList![index]
-                                                        .availableseats >
-                                                    0
+                                            color: ((store.courseList![index]
+                                                            .availableseats >
+                                                        0) &&
+                                                    !registeredGrpId.contains(
+                                                        store.courseList?[index]
+                                                            .grp))
                                                 ? Colors.black
                                                 : Colors.grey,
                                             borderRadius:
@@ -402,12 +394,10 @@ class _AddCourseElectiveState extends State<AddCourseElective> {
                                                 color: Colors.white
                                                     .withOpacity(0.5),
                                                 blurRadius: 7,
-                                                // offset: const Offset(0,
-                                                // 3), // changes position of shadow
                                               ),
                                             ],
                                           ),
-                                          child: Container(
+                                          child: SizedBox(
                                             // width: 200,
                                             height: 40,
                                             child: adding[index]
@@ -421,7 +411,11 @@ class _AddCourseElectiveState extends State<AddCourseElective> {
                                                         MainAxisAlignment
                                                             .center,
                                                     children: [
-                                                      registered[index]
+                                                      registered[store
+                                                                  .courseList![
+                                                                      index]
+                                                                  .course_id]
+                                                              as bool
                                                           ? InkWell(
                                                               child: "   UNSAVE"
                                                                   .text
@@ -450,7 +444,7 @@ class _AddCourseElectiveState extends State<AddCourseElective> {
                                                         color: Colors.white,
                                                         thickness: 1,
                                                       ),
-                                                      Container(
+                                                      SizedBox(
                                                           width: 60,
                                                           child: "${store.courseList![index].availableseats}"
                                                               .text
@@ -505,6 +499,9 @@ class _AddCourseElectiveState extends State<AddCourseElective> {
                         onTap: () {
                           Navigator.popAndPushNamed(
                               context, MyRoutes.viewRegisteredCourse);
+                          // print(store.courseList);
+                          // print(registered);
+                          // print(registeredGrpId);
                         },
                         child: Container(
                             width: 120,

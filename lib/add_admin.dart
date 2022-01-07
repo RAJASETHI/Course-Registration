@@ -35,9 +35,6 @@ class _AddAdminState extends State<AddAdmin> {
         setState(() {
           adding = true;
         });
-        print(username.text);
-        print(passw.text);
-        print(name.text);
         final Dio _dio = Dio();
         Response response = await _dio.post(
           'https://course-registration-lnmiit.herokuapp.com/admin/register',
@@ -59,7 +56,7 @@ class _AddAdminState extends State<AddAdmin> {
           Fluttertoast.showToast(msg: "Not able to add admin...");
         }
       } catch (e) {
-        Fluttertoast.showToast(msg: 'Error creating user: $e');
+        Fluttertoast.showToast(msg: 'Error creating user');
         print('Error creating user: $e');
       }
       setState(() {
@@ -111,7 +108,7 @@ class _AddAdminState extends State<AddAdmin> {
                             placeholder: "Name",
                             prefix:
                                 "Name         ".text.caption(context).make(),
-                            padding: EdgeInsets.only(left: 0),
+                            padding: const EdgeInsets.only(left: 0),
                           ),
                         ),
                         CupertinoFormRow(
@@ -151,7 +148,7 @@ class _AddAdminState extends State<AddAdmin> {
                       ]).p16(),
                   40.heightBox,
                   adding
-                      ? CupertinoActivityIndicator(
+                      ? const CupertinoActivityIndicator(
                           radius: 20,
                         ).centered()
                       : GestureDetector(

@@ -49,8 +49,8 @@ class _StuHomeState extends State<StuHome> {
                 },
               );
               print(response.data);
-              Fluttertoast.showToast(
-                  msg: "Core Course Registered Successfully");
+              // Fluttertoast.showToast(
+              //     msg: "Core Course Registered Successfully");
             });
           }
           setState(() {

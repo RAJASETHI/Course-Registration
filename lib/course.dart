@@ -69,6 +69,8 @@ class Course {
     );
   }
 
+  
+
   String toJson() => json.encode(toMap());
 
   factory Course.fromJson(String source) => Course.fromMap(json.decode(source));

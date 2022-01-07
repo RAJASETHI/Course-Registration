@@ -1,20 +1,14 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_application_1/add_available_course.dart';
-import 'package:flutter_application_1/edit_courses.dart';
 import 'package:flutter_application_1/edit_student.dart';
 import 'package:flutter_application_1/student.dart';
-import 'package:flutter_application_1/view_avlb_courses.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:velocity_x/velocity_x.dart';
 
 import 'package:flutter_application_1/Utils/my_store.dart';
-import 'package:flutter_application_1/Utils/routes.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:flutter_application_1/course.dart';
 
-import 'course_availability_class.dart';
 import 'student.dart';
 
 bool showLoading = false;
@@ -48,7 +42,7 @@ class _StuDetState extends State<StuDet> {
                 "Branch".text.bold.xl2.make().p12().centered(),
                 ListView.builder(
                   itemCount: branches.length,
-                  physics: NeverScrollableScrollPhysics(),
+                  physics: const NeverScrollableScrollPhysics(),
                   shrinkWrap: true,
                   itemBuilder: (context, index) {
                     return ListTile(
@@ -74,7 +68,7 @@ class _StuDetState extends State<StuDet> {
   _showPickerSem() {
     showModalBottomSheet(
         isScrollControlled: true,
-        shape: RoundedRectangleBorder(
+        shape: const RoundedRectangleBorder(
             borderRadius: BorderRadius.vertical(top: Radius.circular(25.0))),
         context: context,
         builder: (BuildContext bc) {
@@ -97,7 +91,7 @@ class _StuDetState extends State<StuDet> {
                             Navigator.pop(context);
                             fetchStudentByYear();
                           },
-                          icon: Icon(
+                          icon: const Icon(
                             CupertinoIcons.search,
                             size: 30,
                           ))
@@ -112,12 +106,12 @@ class _StuDetState extends State<StuDet> {
 
   _showDialog(BuildContext context) {
     CupertinoAlertDialog alert = CupertinoAlertDialog(
-      title: Text('Filters'),
+      title: const Text('Filters'),
       content: SingleChildScrollView(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
-            SizedBox(height: 15.0),
+            const SizedBox(height: 15.0),
             Container(
               height: 70,
               child: Row(
@@ -144,13 +138,13 @@ class _StuDetState extends State<StuDet> {
                           BoxShadow(
                             color: Colors.grey.withOpacity(0.5),
                             blurRadius: 7,
-                            offset: Offset(0, 3), // changes position of shadow
+                            offset: const Offset(0, 3), // changes position of shadow
                           ),
                         ],
                       ),
                     ),
                   ),
-                  VerticalDivider(
+                  const VerticalDivider(
                     // color: Colors.black,
                     thickness: 2,
                   ),
@@ -175,7 +169,7 @@ class _StuDetState extends State<StuDet> {
                           BoxShadow(
                             color: Colors.grey.withOpacity(0.5),
                             blurRadius: 7,
-                            offset: Offset(0, 3), // changes position of shadow
+                            offset: const Offset(0, 3), // changes position of shadow
                           ),
                         ],
                       ),
@@ -184,13 +178,13 @@ class _StuDetState extends State<StuDet> {
                 ],
               ),
             ),
-            SizedBox(height: 15.0),
+            const SizedBox(height: 15.0),
           ],
         ),
       ),
       actions: [
         CupertinoDialogAction(
-          child: Text('Back'),
+          child: const Text('Back'),
           onPressed: () {
             Navigator.pop(context);
           },
@@ -247,7 +241,7 @@ class _StuDetState extends State<StuDet> {
       store.studentListStore = StudentCatalog.studentCatalog;
 
       if (StudentCatalog.studentCatalog!.isEmpty) {
-        Fluttertoast.showToast(msg: "No course available.");
+        Fluttertoast.showToast(msg: "No Student available.");
         Navigator.pop(context);
       }
       setState(() {});
@@ -345,7 +339,7 @@ class _StuDetState extends State<StuDet> {
                             children: [
                               IconButton(
                                 onPressed: () => Navigator.pop(context),
-                                icon: Icon(CupertinoIcons.chevron_back),
+                                icon: const Icon(CupertinoIcons.chevron_back),
                                 color: Vx.white,
                                 iconSize: 30,
                               ),
@@ -396,9 +390,7 @@ class _StuDetState extends State<StuDet> {
                   ),
                   10.heightBox,
                   showLoading
-                      ? CircularProgressIndicator(
-                          color: Colors.grey,
-                        ).centered().pOnly(top: 200)
+                      ? const CupertinoActivityIndicator(radius: 20,).centered().pOnly(top: 200)
                       : VxBuilder(
                           mutations: {SearchMutationStudent},
                           builder: (context, _, __) => ListView.builder(
@@ -407,7 +399,7 @@ class _StuDetState extends State<StuDet> {
                             itemBuilder: (context, index) {
                               return InkWell(
                                 child: Container(
-                                  padding: EdgeInsets.symmetric(
+                                  padding: const EdgeInsets.symmetric(
                                       vertical: 10, horizontal: 10),
                                   child: Column(
                                     crossAxisAlignment:
@@ -466,7 +458,7 @@ class _StuDetState extends State<StuDet> {
                                               );
                                               setState(() {});
                                             },
-                                            icon: Icon(CupertinoIcons
+                                            icon: const Icon(CupertinoIcons
                                                 .pencil_ellipsis_rectangle),
                                             iconSize: 30,
                                           ),
@@ -479,7 +471,7 @@ class _StuDetState extends State<StuDet> {
                                                     .userid
                                                     .toString());
                                               },
-                                              icon: Icon(CupertinoIcons.delete))
+                                              icon: const Icon(CupertinoIcons.delete))
                                         ],
                                       )
                                     ],
@@ -491,7 +483,7 @@ class _StuDetState extends State<StuDet> {
                                       BoxShadow(
                                         color: Colors.grey.withOpacity(0.5),
                                         blurRadius: 7,
-                                        offset: Offset(
+                                        offset: const Offset(
                                             0, 3), // changes position of shadow
                                       ),
                                     ],
@@ -503,8 +495,8 @@ class _StuDetState extends State<StuDet> {
                         ).pOnly(left: 10, right: 10).expand(),
                 ],
               )
-            : Center(
-                child: CircularProgressIndicator(
+            : const Center(
+                child: const CircularProgressIndicator(
                   color: Colors.grey,
                 ),
               ),
