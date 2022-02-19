@@ -1,0 +1,14 @@
+// Written by:Raja Sethi
+class Solution {
+public:
+    #define ll long long
+    vector<long long> sumOfThree(long long num) {
+        ll x=num/3;
+        if(num%3==0)return {x-1,x,x+1};
+        else
+        {
+            return {};
+        }
+        return {};
+    }
+};
